@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunkappish_docs=self.webpackChunkappish_docs||[]).push([[1683],{4138:s=>{s.exports=JSON.parse('{"permalink":"/appish-docs/blog/tags/facebook","page":1,"postsPerPage":10,"totalPages":1,"totalCount":1,"blogDescription":"Blog","blogTitle":"Blog"}')}}]);

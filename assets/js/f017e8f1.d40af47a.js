@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunkappish_docs=self.webpackChunkappish_docs||[]).push([[7482],{6437:s=>{s.exports=JSON.parse('{"label":"hello","permalink":"/appish-docs/blog/tags/hello","allTagsPath":"/appish-docs/blog/tags","count":2}')}}]);
