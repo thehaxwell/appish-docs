@@ -2,11 +2,69 @@
 sidebar_position: 3
 ---
 
-# Add todos
+# Build a tile to add todos
 
-Let's add a new tile that'll let us add a new todo item.
+Let's build a new tile that'll let users add new todos.
 
-Here's the tile we'll add
+## How to navigate between tiles
+
+Here's an example of two tiles, `tileA` and `tileB`. `tileA` has a button that navigates the user to `tileB`:
+
+```javascript
+import Appish from 'appish';
+
+const db = ... // a made up database is defined here
+
+const appish = new Appish(process.env.API_KEY);
+
+appish.setup({
+ startTile: "tileA",
+ tiles: [
+  {
+   id: "tileA",
+   template: [
+    {
+      el: "button",
+      action: "goto-b",
+      inner: ["Go to B"]
+    }
+   ],
+   on: [
+    {
+      action: "goto-b",
+      call: (user,params)=>({tile: "tileB", hashParams: null}),
+    }
+   ]
+  },
+  {
+   id: "tileB",
+   template: [
+    "Welcome to tileB, {{username}}!",
+   ],
+   hash: async function (user,params){
+    return {username: user.name};
+   },
+  },
+ ],
+}).then(()=>console.log('Appish bot successfully set up'))
+.catch(err=>{
+ console.log('Setup failed. Something went wrong: ',err);
+});
+```
+
+There are two **tile configs** involved in navigating between tiles: `hash` and `on`.
+
+It starts with the `on` field. This is an array of **submit-reactors**. Submit reactors "take the user from one tile to another". Here's how:
+
+1. It starts with a submission. A submission is triggered by clicking on a **submitting element** (like a button). When the user submits the tile, the submit-reactor with a matching `action` field is chosen, and its `call` function is called.
+2. Submit-reactor functions are called with two parameters. The first one is `user`, which exposes the information of the user who triggered the submission (the "current" user). The second one allows passing data along with the submission.
+2. Submit-reactor functions return an object that determines which tile should be sent to the user next. The `hashParams` specified will be passed to the **hash function** of that next tile.
+
+Finally the **hash function**(`hash`) of the next tile takes over. You're already familiar with the **hash function** because we just used it to [show the user's todos](./show-todos).
+
+## Now, lets build the tile to add todos
+
+Now were ready to build the tile that the user will use to add new todos.
 
 ```javascript
 // We won't use this variable name. It's just here to make this code snippet valid javascript. We'll only add the object to our project.
@@ -16,18 +74,18 @@ const addNewTile = {
     {
       el: "div",
       styles: "m-2",
-      in: [
+      inner: [
         {
           ctx: "{{#justAdded}}",
           el: "div",
           styles: "mb-2",
-          in: ["You've successfully added the todo: {{.}}"],
+          inner: ["You've successfully added the todo: {{.}}"],
         },
         "Add a new todo",
         {
-          el: "lable",
+          el: "label",
           _for: "title",
-          in: ["Title"],
+          inner: ["Title"],
         },
         {
           el: "input",
@@ -38,9 +96,9 @@ const addNewTile = {
           styles: "mb-2",
         },
         {
-          el: "lable",
+          el: "label",
           _for: "description",
-          in: ["Title"],
+          inner: ["Title"],
         },
         {
           el: "textarea",
@@ -53,17 +111,17 @@ const addNewTile = {
         {
           el: "div",
           styles: "flex",
-          in: [
+          inner: [
             {
               el: "button",
               action: "cancel",
               styles: "mr-2",
-              in: ["cancel"],
+              inner: ["cancel"],
             },
             {
               el: "button",
               action: "done",
-              in: ["Add todo"],
+              inner: ["Add todo"],
             },
           ],
         },
@@ -90,15 +148,11 @@ const addNewTile = {
 };
 ```
 
-We've just introduced you to a few things here, let's talk about those:
+We've just introduced a few things here, let's talk about those:
 
-- Notice the `label`, `input` and `textarea` elements. These are Appish form elements. They look and act like HTML form elements. The key thing to note about Appish form elements is that their values are automatically submitted when the tile is submitted. This brings us to:
-- The `on` tile field. This is an array of submit-reactors. When the user submits the tile using a submitting element(a button or any other element defined with an `action` field), an "action" value is also passed along. The submit-reactor with a matching `action` field is chosen, and its `call` function to called.
-  - Submit-reactor functions are called with
-    1. the user data of the user who submitted the tile, and
-    2. an object that holds the parameters that are being submitted with the tile. By default these parameters are taken from each form element on the tile. They are passed as an object whose keys are taken from `name` and the values from the value of each form element.
-  - Submit-reactors return an object that determines which tile should be sent to the user next. The config of that tile is selected, then the `hash` field function is called to determine the hash values that will be used to render the tile on the user's device.
-- Notice how some of the fields for elements start with an underscore, like `_for`, `_type`, `_id`, `_placeholder`. All fields that start with an underscore directly match to HTML attributes with the same name.
+Notice the `label`, `input` and `textarea` elements. These are Appish **form elements**. They look and act like HTML form elements. The values of form elements are automatically passed as a single object literal to the second parameter of the chosen **submit-reactor** function.
+
+Notice how some of the fields for elements start with an underscore, like `_for`, `_type`, `_id`, `_placeholder`. All fields that start with an underscore directly match to HTML attributes with the same name.
 
 Here's what our project looks like so far
 
@@ -118,25 +172,25 @@ appish.setup({
     {
     el: "div",
     styles: "flex flex-col items-center m-2",
-    in: [
+    inner: [
      {
       ctx: "{{^todos}}",
       el: "div",
-      in: ["No todos"],
+      inner: ["No todos"],
      },
      {
       el: "button",
       action: "add",
       styles: "focus:outline-none text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800",
-      in: ["Add new"],
+      inner: ["Add new"],
      },
      {
       el: "div",
       styles: "mt-2",
-      in: [{
+      inner: [{
         ctx: "{{#todos}}",
         el: "div",
-        in: ["- {{title}}: {{description}}"],
+        inner: ["- {{title}}: {{description}}"],
       }]
      }
     ],
@@ -156,18 +210,18 @@ appish.setup({
    template: [{
     el: "div",
     styles: "m-2",
-    in: [
+    inner: [
      {
       ctx: "{{#justAdded}}",
       el: "div",
       styles: "mb-2",
-      in: ["You've successfully added the todo: {{.}}"],
+      inner: ["You've successfully added the todo: {{.}}"],
      },
      "Add a new todo",
      {
-      el: "lable",
+      el: "label",
       _for: "title",
-      in: [
+      inner: [
         "Title"
       ],
      },
@@ -180,9 +234,9 @@ appish.setup({
       styles: "mb-2"
      },
      {
-      el: "lable",
+      el: "label",
       _for: "description",
-      in: [
+      inner: [
         "Title"
       ],
      },
@@ -197,17 +251,17 @@ appish.setup({
      {
       el: "div",
       styles: "flex",
-      in: [
+      inner: [
         {
          el: "button",
          action: "cancel",
          styles: "mr-2",
-         in: ["cancel"]
+         inner: ["cancel"]
         },
         {
          el: "button",
          action: "done",
-         in: ["Add todo"]
+         inner: ["Add todo"]
         },
       ]
      }
@@ -237,3 +291,5 @@ appish.setup({
  console.log('Setup failed. Something went wrong: ',err);
 });
 ```
+
+Our todo-list bot is almost ready for the spotlight, but what good is a todo-list if you can't indicate which todos you've completed? [Let's add that feature next.](./mark-a-todo-as-done)

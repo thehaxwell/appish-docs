@@ -4,7 +4,7 @@ sidebar_position: 1
 
 # Setup your bot
 
-In this tutorial we're building the classic todo-list app as an Appish bot. Note that this is all just a concept since Appish is still under development. In fact this is more of a walkthrough than a tutorial since none of the code can actually run yet.
+In this tutorial we're building the classic todo-list app as an Appish bot. Note that this is all just a concept since Appish is still under development. None of the code can actually run yet.
 
 Here's a short clip showing how the completed bot will work (TODO: add the clip here).
 
@@ -28,10 +28,10 @@ appish
           {
             el: "div",
             styles: "flex flex-col items-center m-2",
-            nest: [
+            inner: [
               {
                 el: "div",
-                nest: ["Hello world"],
+                inner: ["Hello world"],
               },
             ],
           },
@@ -45,13 +45,13 @@ appish
   });
 ```
 
-Notes:
-
 - `process.env.API_KEY`: This is the API key you'll get from the official @appish bot. This API key has to be kept secret since anyone who has it can control your Appish bot.
-- `appish.setup(...)`: The map paseed into this function defines the behaviour of your bot. It's called the bot config.
+- `appish.setup(...)`: The map passed into this function defines the behaviour of your bot. It's called the bot config.
   Now let's talk about the `tiles`:
-- Appish bots speak in tiles: the bot sends the user a "message" in the form of a tile. Tiles are awesome because they let the bot present information in all sorts of ways, from text to video to a live map. If a response is expected, then the tile will have some interactive elements in which the user submits their response- which will prompt the bot to respond by sending another tile and so on.
-- The UI of a tile is heavily inspired by HTML and uses an adaptation of [Tailwind CSS](https://tailwindcss.com/) (in the `styles` field) for styling:
+- Appish bots speak in tiles: the bot sends the user a "message" in the form of a tile. Tiles are awesome because they let the bot present information with the flexibility of a web-page. If a response is expected, then the tile will have some interactive elements in which the user submits their response- which will prompt the bot to respond by sending another tile and so on.
+- The UI of a tile is heavily inspired by HTML and [the Tailwind CSS framework](https://tailwindcss.com/). Most of the UI of a tile is defined in the `template`. Notice these special fields:
   - `el`: the HTML element tag name
-  - `in`: this is how elements are nested
-  - `styles`: tailwind styles. (there's no classes)
+  - `inner`: this is how elements are nested
+  - `styles`: tailwind styles. (not classes like in Tailwind)
+
+We're off to a great start. [Let's show the user their todos next.](./show-todos)

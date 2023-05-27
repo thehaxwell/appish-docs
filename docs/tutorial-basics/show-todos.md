@@ -4,7 +4,7 @@ sidebar_position: 2
 
 # Show todos
 
-The way Appish bots present the UI in tiles is heavily inspired by [moustache templating](http://mustache.github.io/mustache.5.html)
+The way Appish bots render the UI in tiles is heavily inspired by [moustache templating](http://mustache.github.io/mustache.5.html).
 
 ## A quick intro to Moustache
 
@@ -56,41 +56,54 @@ Will produce the following:
 </ul>
 ```
 
+We have 2 types of *tags* used in this example:
+
+1. **variable tags** like `{{name}}` and `{{title}}`. These are pretty straight forward: the key is replaced with the value from the hash.
+2. **section tags** like `{{^todos}}...{{/todos}}` and `{{#todos}}...{{/todos}}`. These render the blocks they surround 0, 1 or many times. In Appish there's two kinds, which you can spot by whether the opening tag has a "^" or a "#":
+
+- \# : Acts like a FOR statement if the **tag key** turns out to be a non-empty array. Otherwise, it acts like a IF statement that renders the block only if the **tag key** exists and is not an empty array or `false`
+- ^ : basically acts like a NOT operator
+
 Check out [Moustache JS on Github](https://github.com/janl/mustache.js) for a deeper dive.
 
 ## Moustache in Appish
 
-Here's same template example, but in a bot config:
+Here's the same template example, but in a tile's template config:
 
 ```js
 const template = [
 {
  el: "h2",
- in: ["Hello {{name}}"]
+ inner: ["Hello {{name}}"]
 },
 {
  ctx: "{{^todos}}", // ctx stands for context, this is the equivelent of {{#todos}}<p>...</p>{{/todos}}
  el: "p",
- in: ["No todos (yayy)"]
+ inner: ["No todos (yayy)"]
 },
 {
  el: "ul",
- in: [
+ inner: [
   {
    ctx: "{{#todos}}",
    el: "li",
-   in: ["{{title}}: {{description}}"],
+   inner: ["{{title}}: {{description}}"],
   }
  ],
 }
 ];
 ```
 
-The reason we use templating in Appish is to prevent bulky UIs from slowing down the time the user has to wait for a tile to be fetched from the server. The templates for all the tiles defined in a bot's config are downloaded onto the user's device when the the user installs the bot. Then the hash for a specific tile is fetched when the user has navigates to that tile.
+Notice how we've used a new field called `ctx`. It stands for "context" and it's the Appish way to wrap an element in **section tags**.
 
-## Show todos
+In case you're curious, the reason we use templating in Appish is to prevent bulky UIs from slowing down the time the user has to wait for a tile to be fetched from the server:
 
-Finally, let's update our code to show todos on the home tile.
+- template: downloaded when the user installs the bot
+- hash: fetched just when the tile must be shown to the user
+
+## Show todos (finally)
+
+Finally, let's update our code to show the current user's todos on the home tile.
 
 ```javascript
 import Appish from 'appish';
@@ -108,25 +121,25 @@ appish.setup({
     {
     el: "div",
     styles: "flex flex-col items-center m-2",
-    in: [
+    inner: [
      {
       ctx: "{{^todos}}",
       el: "div",
-      in: ["No todos"],
+      inner: ["No todos"],
      },
      {
       el: "button",
       action: "add",
       styles: "focus:outline-none text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800",
-      in: ["Add new"],
+      inner: ["Add new"],
      },
      {
       el: "div",
       styles: "mt-2",
-      in: [{
+      inner: [{
         ctx: "{{#todos}}",
         el: "div",
-        in: ["- {{title}}: {{description}}"],
+        inner: ["- {{title}}: {{description}}"],
       }]
      }
     ],
@@ -148,9 +161,9 @@ appish.setup({
 });
 ```
 
-Notes:
-
-- The `template` and `hash` fields represent the template and hash that are used to present the UI mustache style
+- The `template` and `hash` fields represent the template and hash that are used to render the UI using templating.
 - Note that `hash` is not just a javascript object literal, it's an async function. This function runs just when the user requests the tile, and returns the hash that will be used by the user's device to render the tile. It takes the parameters:
-  - `user`: Appish provides this object to expose the user's information to your bot. This is useful for identifying the user and customization.
-  - `params`: This is called the "hashParams". It contains the data that was sent from the user's device while requesting this tile, or null if there's none.
+  - `user`: Appish provides this object to expose the user's information to your bot. This is useful for identifying the user and customizing their experience.
+  - `params`: contains the data that was sent from the user's device in the request for this tile, or `null` if there's none.
+
+So far so good. Now [let's give our users a way to add a new todo.](./add-todos)
